@@ -140,12 +140,17 @@ body = resp.json()
 assert len(body["successes"]) == 2
 assert body["failures"] == []
 
-# /stats — no data yet for a fresh endpoint
+# /stats — must have data: /prices/single was called twice above (200 + 400)
 resp = client.get("/stats?endpoint=/prices/single&window=1m")
 assert resp.status_code == 200, f"/stats returned {resp.status_code}"
-# after the above calls, stats should have data
 body = resp.json()
-assert "total_requests" in body or body.get("message") == "no data"
+assert "total_requests" in body, f"expected stats data, got: {body}"
+assert body["total_requests"] == 2, f"expected 2 calls recorded, got {body['total_requests']}"
+assert body["error_requests"] == 1, f"expected 1 error (400), got {body['error_requests']}"
+assert body["error_rate"] == 0.5, f"expected error_rate 0.5, got {body['error_rate']}"
+assert body["mean_ms"] >= 0
+assert body["p95_ms"] >= 0
+assert body["p99_ms"] >= 0
 
 # /stats — missing parameter → 400
 resp = client.get("/stats?endpoint=/prices/single")
