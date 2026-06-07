@@ -89,4 +89,82 @@ assert batch.failures == []
 assert batch.elapsed_ms >= 0
 
 print("smoke: crypto_price_feed library OK (no network)")
+
+# ──────────────────────────────────────────────────────────────
+# Part 2: HTTP server layer smoke test (FastAPI TestClient)
+# ──────────────────────────────────────────────────────────────
+from fastapi.testclient import TestClient
+from fastapi import FastAPI
+from crypto_price_feed.stats.store import InMemoryStatsStore
+from crypto_price_feed.stats.query import StatsQuery
+from server.middleware import StatsMiddleware
+from server.routes import prices as prices_router
+from server.routes.stats import make_stats_router
+
+# Build app with injected fake provider via monkeypatching api module
+import crypto_price_feed._internal.validation as _v  # noqa: F401
+import crypto_price_feed.api as _api
+
+_orig_default = _api._default_provider
+
+def _fake_provider():
+    return FakeProvider()
+
+_api._default_provider = _fake_provider
+
+store = InMemoryStatsStore()
+app = FastAPI()
+app.add_middleware(StatsMiddleware, store=store)
+app.include_router(prices_router.router)
+app.include_router(make_stats_router(StatsQuery(store)))
+
+client = TestClient(app, raise_server_exceptions=True)
+
+# /prices/single — happy path
+resp = client.get("/prices/single?symbol=BTC")
+assert resp.status_code == 200, f"/prices/single returned {resp.status_code}: {resp.text}"
+body = resp.json()
+assert body["symbol"] == "BTC"
+assert body["fiat"] == "USD"
+assert "price" in body
+
+# /prices/single — invalid symbol
+resp = client.get("/prices/single?symbol=bad+symbol")
+assert resp.status_code == 400, f"expected 400 for bad symbol, got {resp.status_code}"
+assert resp.json()["error"] == "INVALID_SYMBOL"
+
+# /prices/batch — happy path
+resp = client.post("/prices/batch?fiat=USD", json=["BTC", "ETH"])
+assert resp.status_code == 200, f"/prices/batch returned {resp.status_code}: {resp.text}"
+body = resp.json()
+assert len(body["successes"]) == 2
+assert body["failures"] == []
+
+# /stats — no data yet for a fresh endpoint
+resp = client.get("/stats?endpoint=/prices/single&window=1m")
+assert resp.status_code == 200, f"/stats returned {resp.status_code}"
+# after the above calls, stats should have data
+body = resp.json()
+assert "total_requests" in body or body.get("message") == "no data"
+
+# /stats — missing parameter → 400
+resp = client.get("/stats?endpoint=/prices/single")
+assert resp.status_code == 400
+assert resp.json()["missing"] == "window"
+
+resp = client.get("/stats?window=1m")
+assert resp.status_code == 400
+assert resp.json()["missing"] == "endpoint"
+
+# /stats — invalid window → 400
+resp = client.get("/stats?endpoint=/prices/single&window=99h")
+assert resp.status_code == 400
+
+# /stats requests must not pollute stats counts
+from datetime import UTC, datetime, timedelta
+stats_records = store.query("/stats", datetime.now(tz=UTC) - timedelta(minutes=1))
+assert len(stats_records) == 0, f"/stats path leaked into store: {len(stats_records)} records"
+
+_api._default_provider = _orig_default
+print("smoke: server HTTP layer OK (no network)")
 PY
