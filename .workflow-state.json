@@ -1,68 +1,58 @@
 {
   "phase": "complete",
-  "feature": "crypto-price-feed",
-  "started_at": "2026-06-07T09:16:53Z",
+  "feature": "api-stats",
+  "started_at": "2026-06-07T10:40:13Z",
   "gatekeeper_passed": true,
   "artifacts": {
-    "requirements": "docs/requirements/FR-001.md",
-    "architecture": "docs/architecture/ADR-001.md",
-    "review": "docs/reviews/RV-001.md"
+    "requirements": "docs/requirements/FR-002.md",
+    "architecture": "docs/architecture/ADR-002.md",
+    "review": "docs/reviews/RV-002.md"
   },
   "history": [
     {
       "event": "started",
       "phase": "requirements",
-      "time": "2026-06-07T09:16:53Z"
+      "time": "2026-06-07T10:40:13Z"
     },
     {
       "event": "artifact_set_requirements",
       "phase": "requirements",
-      "time": "2026-06-07T09:17:50Z"
+      "time": "2026-06-07T10:41:24Z"
     },
     {
       "event": "advanced_to_architecture",
       "phase": "architecture",
-      "time": "2026-06-07T09:21:13Z"
-    },
-    {
-      "event": "artifact_set_architecture",
-      "phase": "architecture",
-      "time": "2026-06-07T09:29:48Z"
+      "time": "2026-06-07T10:45:06Z"
     },
     {
       "event": "advanced_to_dev",
       "phase": "dev",
-      "time": "2026-06-07T09:32:34Z"
-    },
-    {
-      "event": "advanced_to_gatekeeper",
-      "phase": "gatekeeper",
-      "time": "2026-06-07T09:47:32Z"
+      "time": "2026-06-07T10:55:00Z"
     },
     {
       "event": "gatekeeper_passed",
-      "phase": "gatekeeper",
-      "time": "2026-06-07T09:48:03Z"
-    },
-    {
-      "event": "advanced_to_qa-review",
-      "phase": "qa-review",
-      "time": "2026-06-07T09:48:03Z"
+      "phase": "dev",
+      "time": "2026-06-07T11:00:12Z"
     },
     {
       "event": "artifact_set_review",
-      "phase": "qa-review",
-      "time": "2026-06-07T09:50:18Z"
+      "phase": "dev",
+      "time": "2026-06-07T11:05:29Z"
+    },
+    {
+      "event": "artifact_set_review",
+      "phase": "dev",
+      "time": "2026-06-07T11:09:11Z"
     },
     {
       "event": "advanced_to_pm-acceptance",
       "phase": "pm-acceptance",
-      "time": "2026-06-07T09:52:11Z"
+      "time": "2026-06-07T11:09:41Z"
     },
     {
       "event": "completed",
       "phase": "complete",
-      "time": "2026-06-07T09:53:50Z"
+      "time": "2026-06-07T11:13:58Z"
     }
   ]
 }

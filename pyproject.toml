@@ -12,6 +12,8 @@ license = { text = "MIT" }
 authors = [{ name = "harness-claude" }]
 dependencies = [
     "httpx>=0.25",
+    "fastapi>=0.111",
+    "uvicorn>=0.29",
 ]
 
 [project.optional-dependencies]
@@ -24,7 +26,7 @@ dev = [
 ]
 
 [tool.hatch.build.targets.wheel]
-packages = ["crypto_price_feed"]
+packages = ["crypto_price_feed", "server"]
 
 [tool.ruff]
 line-length = 100
@@ -51,7 +53,7 @@ addopts = "-ra"
 filterwarnings = ["error"]
 
 [tool.coverage.run]
-source = ["crypto_price_feed"]
+source = ["crypto_price_feed", "server"]
 branch = true
 omit = ["tests/*"]
 
