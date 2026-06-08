@@ -1,19 +1,23 @@
-"""ASGI stats middleware: auto-collects call counts and latencies for all endpoints (FR-002)."""
+"""ASGI middleware: stats collection (FR-002) and rate limiting."""
 
 from __future__ import annotations
 
 import logging
+import math
 import time
 from datetime import UTC, datetime
 
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
-from starlette.responses import Response
+from starlette.responses import JSONResponse, Response
 
 from crypto_price_feed.stats.models import RequestRecord
 from crypto_price_feed.stats.store import StatsStore
+from server.rate_limiter import RateLimiter
 
 logger = logging.getLogger(__name__)
+
+_EXEMPT_PREFIXES = ("/stats", "/docs", "/openapi.json", "/redoc")
 
 
 class StatsMiddleware(BaseHTTPMiddleware):
@@ -44,3 +48,27 @@ class StatsMiddleware(BaseHTTPMiddleware):
             logger.exception("stats collection failed for %s", request.url.path)
 
         return response
+
+
+class RateLimitMiddleware(BaseHTTPMiddleware):
+    """Fixed-window rate limiter middleware. Exempt paths bypass the limit."""
+
+    def __init__(self, app, limiter: RateLimiter) -> None:
+        super().__init__(app)
+        self._limiter = limiter
+
+    async def dispatch(self, request: Request, call_next) -> Response:
+        path = request.url.path
+        if any(path.startswith(prefix) for prefix in _EXEMPT_PREFIXES):
+            return await call_next(request)
+
+        client_ip = request.client.host if request.client else "unknown"
+        if not self._limiter.is_allowed(client_ip):
+            retry_after = math.ceil(self._limiter.retry_after(client_ip))
+            return JSONResponse(
+                status_code=429,
+                content={"detail": "Too Many Requests"},
+                headers={"Retry-After": str(retry_after)},
+            )
+
+        return await call_next(request)

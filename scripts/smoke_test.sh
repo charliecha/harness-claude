@@ -172,4 +172,44 @@ assert len(stats_records) == 0, f"/stats path leaked into store: {len(stats_reco
 
 _api._default_provider = _orig_default
 print("smoke: server HTTP layer OK (no network)")
+
+# ──────────────────────────────────────────────────────────────
+# Part 3: Rate limiting smoke test
+# ──────────────────────────────────────────────────────────────
+from server.rate_limiter import RateLimiter
+from server.middleware import RateLimitMiddleware
+
+rl_store = InMemoryStatsStore()
+rl_limiter = RateLimiter(limit=2, window=60)
+rl_app = FastAPI()
+rl_app.add_middleware(RateLimitMiddleware, limiter=rl_limiter)
+
+@rl_app.get("/ping")
+def ping():
+    return {"ok": True}
+
+@rl_app.get("/stats/summary")
+def stats_exempt():
+    return {"ok": True}
+
+rl_client = TestClient(rl_app, raise_server_exceptions=True)
+
+# Within limit: first two requests succeed
+r1 = rl_client.get("/ping")
+assert r1.status_code == 200, f"expected 200, got {r1.status_code}"
+r2 = rl_client.get("/ping")
+assert r2.status_code == 200, f"expected 200, got {r2.status_code}"
+
+# Exceeds limit: third request returns 429
+r3 = rl_client.get("/ping")
+assert r3.status_code == 429, f"expected 429, got {r3.status_code}"
+assert "retry-after" in r3.headers, "missing Retry-After header"
+assert int(r3.headers["retry-after"]) > 0, "Retry-After must be positive"
+assert r3.json()["detail"] == "Too Many Requests"
+
+# Exempt path bypasses rate limit even when limit is exhausted
+r4 = rl_client.get("/stats/summary")
+assert r4.status_code == 200, f"/stats/* exempt path returned {r4.status_code}"
+
+print("smoke: rate limiting OK")
 PY
