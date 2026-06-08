@@ -27,19 +27,42 @@ class RateLimiter:
         self._windows: dict[str, _Window] = {}
         self._lock = threading.Lock()
 
-    def is_allowed(self, key: str) -> bool:
-        """Return True if the request is within the rate limit."""
+    def check(self, key: str) -> tuple[bool, float]:
+        """Atomically check and record a request.
+
+        Returns:
+            (allowed, retry_after_seconds) — both values under a single lock
+            acquisition, eliminating the TOCTOU race between is_allowed and
+            retry_after.
+        """
         with self._lock:
             now = time.monotonic()
             w = self._windows.get(key)
+
+            # Passive sweep: remove other expired windows to bound memory growth.
+            if len(self._windows) > 1:
+                expired = [k for k, v in self._windows.items() if now - v.start >= self._window]
+                for k in expired:
+                    del self._windows[k]
+
             if w is None or now - w.start >= self._window:
                 self._windows[key] = _Window(count=1, start=now)
-                return self._limit > 0
+                return self._limit > 0, 0.0
+
             w.count += 1
-            return w.count <= self._limit
+            if w.count <= self._limit:
+                return True, 0.0
+
+            remaining = max(0.0, self._window - (now - w.start))
+            return False, remaining
+
+    def is_allowed(self, key: str) -> bool:
+        """Return True if the request is within the rate limit."""
+        allowed, _ = self.check(key)
+        return allowed
 
     def retry_after(self, key: str) -> float:
-        """Return seconds until the current window resets; 0 if not rate-limited."""
+        """Return seconds until the current window resets; 0 if requests are still allowed."""
         with self._lock:
             w = self._windows.get(key)
             if w is None or w.count < self._limit:

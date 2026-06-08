@@ -49,10 +49,8 @@ class TestRateLimitMiddleware:
 
     def test_stats_path_is_exempt_from_rate_limit(self):
         client = TestClient(_make_app(limit=1), raise_server_exceptions=True)
-        # exhaust limit on /ping
         client.get("/ping")
         assert client.get("/ping").status_code == 429
-        # /stats/* must still pass
         assert client.get("/stats/summary").status_code == 200
 
     def test_429_body_contains_detail(self):
@@ -61,3 +59,18 @@ class TestRateLimitMiddleware:
         resp = client.get("/ping")
         assert resp.status_code == 429
         assert "detail" in resp.json()
+
+    def test_x_forwarded_for_is_used_as_key(self):
+        """Requests with different X-Forwarded-For are bucketed independently."""
+        client = TestClient(_make_app(limit=1), raise_server_exceptions=True)
+        r1 = client.get("/ping", headers={"X-Forwarded-For": "10.0.0.1"})
+        assert r1.status_code == 200
+        r2 = client.get("/ping", headers={"X-Forwarded-For": "10.0.0.2"})
+        assert r2.status_code == 200
+
+    def test_x_forwarded_for_limit_exhausted(self):
+        """Same X-Forwarded-For IP hits limit correctly."""
+        client = TestClient(_make_app(limit=1), raise_server_exceptions=True)
+        client.get("/ping", headers={"X-Forwarded-For": "10.0.0.5"})
+        resp = client.get("/ping", headers={"X-Forwarded-For": "10.0.0.5"})
+        assert resp.status_code == 429

@@ -57,3 +57,36 @@ class TestRateLimiterBasic:
     def test_limit_zero_blocks_all(self):
         limiter = RateLimiter(limit=0, window=60)
         assert limiter.is_allowed("127.0.0.1") is False
+
+
+class TestRateLimiterCheck:
+    def test_check_returns_allowed_true_within_limit(self):
+        limiter = RateLimiter(limit=2, window=60)
+        allowed, retry = limiter.check("127.0.0.1")
+        assert allowed is True
+        assert retry == 0.0
+
+    def test_check_returns_allowed_false_when_exceeded(self):
+        limiter = RateLimiter(limit=1, window=60)
+        limiter.check("127.0.0.1")
+        allowed, retry = limiter.check("127.0.0.1")
+        assert allowed is False
+        assert retry > 0
+
+    def test_check_is_atomic_allowed_and_retry_consistent(self):
+        """allowed=False and retry>0 must always be consistent (no TOCTOU)."""
+        limiter = RateLimiter(limit=1, window=60)
+        limiter.check("127.0.0.1")
+        for _ in range(10):
+            allowed, retry = limiter.check("127.0.0.1")
+            assert allowed is False
+            assert retry > 0
+
+    def test_passive_sweep_removes_expired_windows(self):
+        limiter = RateLimiter(limit=1, window=1)
+        limiter.check("1.1.1.1")
+        limiter.check("2.2.2.2")
+        time.sleep(1.1)
+        # Trigger sweep via a new check call
+        limiter.check("3.3.3.3")
+        assert len(limiter._windows) <= 2  # only the new entry (and possibly 3.3.3.3)

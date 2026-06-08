@@ -62,13 +62,21 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         if any(path.startswith(prefix) for prefix in _EXEMPT_PREFIXES):
             return await call_next(request)
 
-        client_ip = request.client.host if request.client else "unknown"
-        if not self._limiter.is_allowed(client_ip):
-            retry_after = math.ceil(self._limiter.retry_after(client_ip))
+        # Prefer X-Forwarded-For / X-Real-IP set by a trusted reverse proxy.
+        client_ip = (
+            request.headers.get("X-Forwarded-For", "").split(",")[0].strip()
+            or request.headers.get("X-Real-IP", "").strip()
+            or (request.client.host if request.client else None)
+        )
+        if not client_ip:
+            return JSONResponse(status_code=400, content={"detail": "Unable to determine client IP"})
+
+        allowed, retry_secs = self._limiter.check(client_ip)
+        if not allowed:
             return JSONResponse(
                 status_code=429,
                 content={"detail": "Too Many Requests"},
-                headers={"Retry-After": str(retry_after)},
+                headers={"Retry-After": str(math.ceil(retry_secs))},
             )
 
         return await call_next(request)
