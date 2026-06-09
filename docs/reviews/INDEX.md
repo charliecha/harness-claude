@@ -6,6 +6,7 @@
 | [RV-002](RV-002.md) | api-stats QA                 | **Passed** | FR-002, NFR-002-1~6 | ADR-002 |
 | [RV-003](RV-003.md) | health check QA              | **Passed** | FR-003              | ADR-003 |
 | [RV-004](RV-004.md) | Android LLM 模型加载 QA      | **Passed** | FR-004              | ADR-004 |
+| [RV-005](RV-005.md) | llama.cpp Submodule 集成 QA  | **Passed** | FR-005              | ADR-005 |
 
 ## Status Legend
 

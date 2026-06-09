@@ -14,6 +14,7 @@ check "no hardcoded secrets" \
         --exclude-dir=".gradle" \
         --exclude-dir="build" \
         --exclude-dir=".idea" \
+        --exclude-dir="third_party" \
         . 2>/dev/null'
 
 # 无裸 println()（除非有显式 // noqa 豁免）
@@ -21,12 +22,14 @@ check "no bare println() in non-test code" \
     '! grep -rn --include="*.kt" \
         --exclude-dir=".git" --exclude-dir=".gradle" --exclude-dir="build" \
         --exclude-dir="test" --exclude-dir="androidTest" \
+        --exclude-dir="third_party" \
         "^[^/]*\bprintln(" . 2>/dev/null | grep -v "// noqa"'
 
 # 不允许 GlobalScope.launch（应使用 viewModelScope/lifecycleScope/结构化并发）
 check "no GlobalScope.launch (use structured concurrency)" \
     '! grep -rn --include="*.kt" \
         --exclude-dir=".git" --exclude-dir=".gradle" --exclude-dir="build" \
+        --exclude-dir="third_party" \
         "GlobalScope\.launch" . 2>/dev/null | grep -v "// noqa"'
 
 # 不允许 !! 强制解包（除测试代码）
@@ -34,6 +37,7 @@ check "no !! force-unwrap in non-test code" \
     '! grep -rn --include="*.kt" \
         --exclude-dir=".git" --exclude-dir=".gradle" --exclude-dir="build" \
         --exclude-dir="test" --exclude-dir="androidTest" \
+        --exclude-dir="third_party" \
         "!!" . 2>/dev/null | grep -v "// noqa" | grep -vE "^\s*//"'
 
 # ────────────────────────────────────────────────

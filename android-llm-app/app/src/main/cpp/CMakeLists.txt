@@ -42,6 +42,7 @@ add_library(llama_jni SHARED
 
 target_include_directories(llama_jni PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}
+    $<$<BOOL:${LLAMA_CPP_AVAILABLE}>:${LLAMA_CPP_DIR}/include>
 )
 
 target_compile_definitions(llama_jni PRIVATE

@@ -68,7 +68,7 @@ Java_com_harnessclaude_llm_nativebridge_LlamaJni_loadModel(
     llama_model_params params = llama_model_default_params();
     params.use_mmap = useMmap;
     params.use_mlock = false;
-    llama_model* model = llama_load_model_from_file(path.c_str(), params);
+    llama_model* model = llama_model_load_from_file(path.c_str(), params);
     if (!model) {
         LOGE("llama_load_model_from_file returned NULL for %s", path.c_str());
         return 0L;
@@ -92,7 +92,7 @@ Java_com_harnessclaude_llm_nativebridge_LlamaJni_freeModel(
     }
 #if defined(LLAMA_CPP_AVAILABLE) && LLAMA_CPP_AVAILABLE
     auto* model = reinterpret_cast<llama_model*>(nativePtr);
-    llama_free_model(model);
+    llama_model_free(model);
     llama_backend_free();
     LOGI("Freed model ptr=%lld", static_cast<long long>(nativePtr));
 #else

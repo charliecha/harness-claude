@@ -1,63 +1,63 @@
 {
   "phase": "complete",
-  "feature": "fr-004-gguf-model-loading",
-  "started_at": "2026-06-09T08:49:04Z",
+  "feature": "fr-005-llama-cpp-submodule",
+  "started_at": "2026-06-09T12:02:36Z",
   "gatekeeper_passed": true,
   "artifacts": {
-    "requirements": "docs/requirements/FR-004.md",
-    "architecture": "docs/architecture/ADR-004.md",
-    "review": "docs/reviews/RV-004.md"
+    "requirements": "docs/requirements/FR-005.md",
+    "architecture": "docs/architecture/ADR-005.md",
+    "review": "docs/reviews/RV-005.md"
   },
   "history": [
     {
       "event": "started",
       "phase": "requirements",
-      "time": "2026-06-09T08:49:04Z"
+      "time": "2026-06-09T12:02:36Z"
     },
     {
       "event": "artifact_set_requirements",
       "phase": "requirements",
-      "time": "2026-06-09T09:10:42Z"
+      "time": "2026-06-09T12:08:36Z"
     },
     {
       "event": "advanced_to_architecture",
       "phase": "architecture",
-      "time": "2026-06-09T09:10:59Z"
+      "time": "2026-06-09T12:08:36Z"
     },
     {
       "event": "artifact_set_architecture",
       "phase": "architecture",
-      "time": "2026-06-09T09:19:38Z"
+      "time": "2026-06-09T12:11:32Z"
     },
     {
       "event": "advanced_to_dev",
       "phase": "dev",
-      "time": "2026-06-09T09:19:47Z"
+      "time": "2026-06-09T12:11:32Z"
     },
     {
       "event": "gatekeeper_passed",
       "phase": "dev",
-      "time": "2026-06-09T11:53:37Z"
+      "time": "2026-06-09T12:27:25Z"
     },
     {
       "event": "advanced_to_qa-review",
       "phase": "qa-review",
-      "time": "2026-06-09T11:53:45Z"
+      "time": "2026-06-09T12:27:25Z"
     },
     {
       "event": "artifact_set_review",
       "phase": "qa-review",
-      "time": "2026-06-09T11:56:45Z"
+      "time": "2026-06-09T12:29:07Z"
     },
     {
       "event": "advanced_to_pm-acceptance",
       "phase": "pm-acceptance",
-      "time": "2026-06-09T11:56:45Z"
+      "time": "2026-06-09T12:29:07Z"
     },
     {
       "event": "completed",
       "phase": "complete",
-      "time": "2026-06-09T11:58:02Z"
+      "time": "2026-06-09T12:29:59Z"
     }
   ]
 }
