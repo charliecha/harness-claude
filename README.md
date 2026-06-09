@@ -52,20 +52,47 @@ git subtree pull --prefix=.harness harness-scaffold main --squash
 
 ## 六阶段工作流
 
-| 阶段 | 命令 | 产物 |
-|---|---|---|
-| requirements | `bash .harness/workflow.sh start <feature>` | `docs/requirements/FR-XXX.md` |
-| architecture | `bash .harness/workflow.sh advance architecture` | `docs/architecture/ADR-XXX.md` |
-| dev | `bash .harness/workflow.sh advance dev` | 源码 + 测试 |
-| gatekeeper | `bash .harness/gatekeeper.sh` | exit 0 自动推进 |
-| qa-review | `bash .harness/workflow.sh advance qa-review` | `docs/reviews/RV-XXX.md` |
-| pm-acceptance | `bash .harness/workflow.sh advance pm-acceptance` | 验收结论 |
+两种使用方式，效果等价，选其一即可。
 
-查看当前状态：
+### 方式一：AI 全自动（推荐）
+
+在 Claude Code 中输入：
+
+```
+/team-orch-add-feature <功能描述>
+```
+
+Claude 会自动驱动全部六个阶段——产出需求文档、架构决策、编写代码、执行 gatekeeper 安检、QA 审查，直到 PM 验收。每个关键节点（FR / ADR / PM 验收）会暂停等待人工确认后再继续。
+
+### 方式二：手动逐步推进
 
 ```bash
+# 启动新功能
+bash .harness/workflow.sh start <feature-name>
+
+# 查看当前状态
 bash .harness/workflow.sh status
+
+# 依次推进各阶段
+bash .harness/workflow.sh advance architecture   # requirements → architecture
+bash .harness/workflow.sh advance dev            # architecture → dev
+bash .harness/workflow.sh advance gatekeeper     # dev → gatekeeper
+bash .harness/gatekeeper.sh                      # 安检（通过后自动 gate-pass）
+bash .harness/workflow.sh advance qa-review      # 需 gatekeeper_passed=true
+bash .harness/workflow.sh advance pm-acceptance  # 需 review 产物存在
+bash .harness/workflow.sh complete               # 完成
 ```
+
+### 阶段与产物
+
+| 阶段 | 产物 |
+|---|---|
+| requirements | `docs/requirements/FR-XXX.md` |
+| architecture | `docs/architecture/ADR-XXX.md` |
+| dev | 源码 + 测试（build + test PASSED） |
+| gatekeeper | exit 0（自动推进） |
+| qa-review | `docs/reviews/RV-XXX.md` |
+| pm-acceptance | 验收结论（用户确认后 complete） |
 
 完整文档见 [.harness/README.md](.harness/README.md)。
 
