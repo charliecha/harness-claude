@@ -15,7 +15,8 @@ venv/
 .claude/the-security-guide.md
 .claude/marketplace.json
 .claude/plugin.json
-.claude/commands/
+.claude/commands/*
+!.claude/commands/team-orch-add-feature.md
 .claude/ecc/
 .claude/hooks/
 .claude/mcp-configs/
