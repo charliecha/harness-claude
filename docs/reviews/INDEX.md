@@ -7,6 +7,7 @@
 | [RV-003](RV-003.md) | health check QA              | **Passed** | FR-003              | ADR-003 |
 | [RV-004](RV-004.md) | Android LLM 模型加载 QA      | **Passed** | FR-004              | ADR-004 |
 | [RV-005](RV-005.md) | llama.cpp Submodule 集成 QA  | **Passed** | FR-005              | ADR-005 |
+| [RV-006](RV-006.md) | 端侧 LLM 推理接口 QA         | **Passed** | FR-006              | ADR-006 |
 
 ## Status Legend
 

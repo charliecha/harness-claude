@@ -7,6 +7,7 @@
 | ADR-003 | API 健康检查 - 架构决策                            | Proposed | FR-003   | —           |
 | ADR-004 | Android LLM 推理助手 - 初始化与 GGUF 模型加载     | Accepted | FR-004   | RV-004      |
 | ADR-005 | 集成 llama.cpp Submodule，替换 STUB 模式           | Accepted | FR-005   | RV-005      |
+| ADR-006 | LLM 推理接口：InferenceSession / Flow / Sampler    | Accepted | FR-006   | RV-006      |
 
 ## 状态说明
 

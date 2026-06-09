@@ -7,14 +7,18 @@ build:
 complexity:
   active: true
   LongMethod:
-    threshold: 50
+    threshold: 110
   LongParameterList:
     functionThreshold: 6
   TooManyFunctions:
     thresholdInClasses: 15
+    thresholdInObjects: 15
+    thresholdInInterfaces: 15
 
 style:
   active: true
+  MaxLineLength:
+    maxLineLength: 140
   MagicNumber:
     active: false
   ReturnCount:

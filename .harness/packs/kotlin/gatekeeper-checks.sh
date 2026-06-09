@@ -44,6 +44,14 @@ check "no !! force-unwrap in non-test code" \
 # SECTION: 静态分析
 # ────────────────────────────────────────────────
 
+# Ensure Java 17 is used for AGP 8.x builds on macOS where system Java may be 8.
+if command -v /usr/libexec/java_home &>/dev/null; then
+    JAVA17=$(/usr/libexec/java_home -v 17 2>/dev/null)
+    if [ -n "$JAVA17" ]; then
+        export JAVA_HOME="$JAVA17"
+    fi
+fi
+
 # Locate gradlew: prefer root, then first subdirectory (e.g. android-llm-app/).
 GRADLEW=""
 GRADLE_DIR="."
