@@ -17,18 +17,18 @@ from server.rate_limiter import RateLimiter
 
 logger = logging.getLogger(__name__)
 
-_EXEMPT_PREFIXES = ("/stats", "/docs", "/openapi.json", "/redoc")
+_EXEMPT_PREFIXES = ("/stats", "/docs", "/openapi.json", "/redoc", "/health")
 
 
 class StatsMiddleware(BaseHTTPMiddleware):
-    """Intercepts all requests; /stats paths are skipped to avoid self-pollution (FR-002-4 AC4)."""
+    """Intercepts all requests; exempt paths are skipped to avoid self-pollution (FR-002-4 AC4, FR-003)."""
 
     def __init__(self, app, store: StatsStore) -> None:
         super().__init__(app)
         self._store = store
 
     async def dispatch(self, request: Request, call_next) -> Response:
-        skip = request.url.path.startswith("/stats")
+        skip = any(request.url.path.startswith(p) for p in ("/stats", "/health"))
         if skip:
             return await call_next(request)
 

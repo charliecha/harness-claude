@@ -6,7 +6,7 @@ build-backend = "hatchling.build"
 name = "crypto-price-feed"
 version = "0.1.0"
 description = "Real-time cryptocurrency price feed (FR-001 / ADR-001)"
-readme = "README.md"
+readme = ""  # no README.md yet
 requires-python = ">=3.11"
 license = { text = "MIT" }
 authors = [{ name = "harness-claude" }]
@@ -14,6 +14,7 @@ dependencies = [
     "httpx>=0.25",
     "fastapi>=0.111",
     "uvicorn>=0.29",
+    "psutil>=5.9",
 ]
 
 [project.optional-dependencies]
@@ -50,7 +51,10 @@ exclude = ["build/", "dist/", "\\.venv/", "venv/"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-ra"
-filterwarnings = ["error"]
+filterwarnings = [
+    "error",
+    'default:.*asyncio\.iscoroutinefunction.*:DeprecationWarning',
+]
 
 [tool.coverage.run]
 source = ["crypto_price_feed", "server"]

@@ -12,6 +12,7 @@ from crypto_price_feed.stats.store import InMemoryStatsStore
 from server.middleware import RateLimitMiddleware, StatsMiddleware
 from server.rate_limiter import RateLimiter
 from server.routes import prices
+from server.routes.health import router as health_router
 from server.routes.stats import make_stats_router
 
 _DEFAULT_RATE_LIMIT = 60
@@ -31,6 +32,7 @@ def create_app() -> FastAPI:
     app.add_middleware(StatsMiddleware, store=store)
     app.add_middleware(RateLimitMiddleware, limiter=limiter)
     app.include_router(prices.router)
+    app.include_router(health_router)
     app.include_router(make_stats_router(query))
 
     @app.on_event("startup")
