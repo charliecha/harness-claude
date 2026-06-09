@@ -1,0 +1,34 @@
+# Android-specific ignores for the android-llm-app subproject.
+
+# Gradle build outputs
+build/
+.gradle/
+.kotlin/
+
+# Local Gradle config (per-machine SDK path)
+local.properties
+
+# IDE
+.idea/
+*.iml
+.cxx/
+captures/
+
+# Native build artifacts and submodule build dir
+*.so
+*.o
+*.a
+third_party/llama.cpp/build/
+third_party/llama.cpp/build-android/
+
+# Test fixtures (large model files must not be committed)
+*.gguf
+*.bin
+app/src/androidTest/assets/tiny.gguf
+
+# Kotlin/Detekt reports
+detekt-report.*
+build-reports/
+
+# Coverage
+.kover/

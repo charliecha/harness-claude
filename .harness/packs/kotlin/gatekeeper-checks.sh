@@ -40,17 +40,31 @@ check "no !! force-unwrap in non-test code" \
 # SECTION: 静态分析
 # ────────────────────────────────────────────────
 
+# Locate gradlew: prefer root, then first subdirectory (e.g. android-llm-app/).
+GRADLEW=""
+GRADLE_DIR="."
 if [ -x ./gradlew ]; then
+    GRADLEW="./gradlew"
+else
+    SUBDIR_GRADLEW=$(find . -maxdepth 2 -name gradlew 2>/dev/null | head -1)
+    if [ -n "$SUBDIR_GRADLEW" ] && [ -x "$SUBDIR_GRADLEW" ]; then
+        GRADLEW="$SUBDIR_GRADLEW"
+        GRADLE_DIR=$(dirname "$SUBDIR_GRADLEW")
+    fi
+fi
+
+if [ -n "$GRADLEW" ]; then
+    GRADLE_CMD="(cd ${GRADLE_DIR} && ./gradlew"
     # ktlint（如已配置）
     if grep -rq "ktlint" --include="*.gradle*" . 2>/dev/null; then
-        check_with_output "ktlint clean" './gradlew ktlintCheck --no-daemon -q'
+        check_with_output "ktlint clean" "${GRADLE_CMD} ktlintCheck --no-daemon -q)"
     else
         echo -e "${YELLOW}⚠️  ktlint not configured — skipping (推荐添加 org.jlleitschuh.gradle.ktlint plugin)${NC}"
     fi
 
     # detekt（如已配置）
     if grep -rq "detekt" --include="*.gradle*" . 2>/dev/null; then
-        check_with_output "detekt clean" './gradlew detekt --no-daemon -q'
+        check_with_output "detekt clean" "${GRADLE_CMD} detekt --no-daemon -q)"
     else
         echo -e "${YELLOW}⚠️  detekt not configured — skipping (推荐添加 io.gitlab.arturbosch.detekt plugin)${NC}"
     fi
@@ -64,29 +78,30 @@ fi
 # SECTION: 编译与测试
 # ────────────────────────────────────────────────
 
-if [ -x ./gradlew ]; then
+if [ -n "$GRADLEW" ]; then
+    GRADLE_CMD="(cd ${GRADLE_DIR} && ./gradlew"
     # 编译
     if grep -rq "com.android.application\|com.android.library" --include="*.gradle*" . 2>/dev/null; then
         check_with_output "android assembleDebug succeeds" \
-            './gradlew assembleDebug --no-daemon -q'
+            "${GRADLE_CMD} assembleDebug --no-daemon -q)"
         TEST_TASK="testDebugUnitTest"
     else
         check_with_output "compileKotlin succeeds" \
-            './gradlew compileKotlin --no-daemon -q'
+            "${GRADLE_CMD} compileKotlin --no-daemon -q)"
         TEST_TASK="test"
     fi
 
     # 测试 + 覆盖率（阈值从 .harness-config.json）
     THRESHOLD=$(harness_get coverage_threshold)
-    check_with_output "gradle ${TEST_TASK} passes" "./gradlew ${TEST_TASK} --no-daemon -q"
+    check_with_output "gradle ${TEST_TASK} passes" "${GRADLE_CMD} ${TEST_TASK} --no-daemon -q)"
 
     # 覆盖率验证（kover 优先，jacoco 兜底）
     if grep -rq "id(\"org.jetbrains.kotlinx.kover\")\|kotlinx-kover" --include="*.gradle*" . 2>/dev/null; then
         check_with_output "kover coverage >= ${THRESHOLD}%" \
-            './gradlew koverVerify --no-daemon -q'
+            "${GRADLE_CMD} koverVerify --no-daemon -q)"
     elif grep -rq "jacoco" --include="*.gradle*" . 2>/dev/null; then
         check_with_output "jacoco coverage >= ${THRESHOLD}%" \
-            './gradlew jacocoTestCoverageVerification --no-daemon -q'
+            "${GRADLE_CMD} jacocoTestCoverageVerification --no-daemon -q)"
     else
         echo -e "${YELLOW}⚠️  未配置 kover/jacoco — 跳过覆盖率验证（强烈建议添加 kover）${NC}"
     fi

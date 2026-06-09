@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">LLM Loader</string>
+    <string name="loader_ready">Model Loader Ready</string>
+    <string name="loader_loading">Loading model…</string>
+    <string name="loader_success">Loaded: %1$s</string>
+    <string name="loader_failed">Load failed: %1$s</string>
+</resources>
