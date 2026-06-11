@@ -27,6 +27,7 @@ class MainActivity : ComponentActivity() {
                         onGenerate = { prompt -> vm.generate(prompt) },
                         onStop = vm::stopGeneration,
                         onClear = vm::clearOutput,
+                        onLoadModel = vm::loadModel,
                     )
                 }
             }

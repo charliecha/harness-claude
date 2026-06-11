@@ -38,6 +38,7 @@ fun InferenceScreen(
     onGenerate: (String) -> Unit,
     onStop: () -> Unit,
     onClear: () -> Unit,
+    onLoadModel: (String) -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     var promptText by remember { mutableStateOf("") }
@@ -57,6 +58,16 @@ fun InferenceScreen(
             text = "LLM Inference",
             style = MaterialTheme.typography.headlineSmall,
         )
+
+        if (!uiState.modelLoaded && !uiState.isLoading) {
+            Spacer(modifier = Modifier.height(8.dp))
+            Button(
+                onClick = { onLoadModel("stub") },
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Text("Load Model (STUB)")
+            }
+        }
 
         Spacer(modifier = Modifier.height(8.dp))
 

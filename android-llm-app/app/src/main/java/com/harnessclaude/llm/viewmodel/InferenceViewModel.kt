@@ -8,6 +8,7 @@ import com.harnessclaude.llm.inference.InferenceParams
 import com.harnessclaude.llm.inference.InferenceSession
 import com.harnessclaude.llm.inference.InferenceSessionFactory
 import com.harnessclaude.llm.model.LlamaCppModelLoader
+import com.harnessclaude.llm.model.NoOpJni
 import com.harnessclaude.llm.model.ModelHandle
 import com.harnessclaude.llm.model.ModelLoader
 import kotlinx.coroutines.Job
@@ -125,6 +126,19 @@ class InferenceViewModel(
 
     class Factory(private val filesDir: File) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
-        override fun <T : ViewModel> create(modelClass: Class<T>): T = InferenceViewModel(LlamaCppModelLoader(filesDir)) as T
+        override fun <T : ViewModel> create(modelClass: Class<T>): T {
+            val loader = LlamaCppModelLoader(
+                ioDispatcher = kotlinx.coroutines.Dispatchers.IO,
+                pathValidator = com.harnessclaude.llm.storage.PathValidator(filesDir),
+                jni = NoOpJni,
+                threadChecker = com.harnessclaude.llm.threading.ThreadChecker.Real,
+                stubMode = true,
+            )
+            val sessionFactory = InferenceSessionFactory(
+                jni = NoOpJni,
+                threadChecker = com.harnessclaude.llm.threading.ThreadChecker.Real,
+            )
+            return InferenceViewModel(loader, sessionFactory) as T
+        }
     }
 }
