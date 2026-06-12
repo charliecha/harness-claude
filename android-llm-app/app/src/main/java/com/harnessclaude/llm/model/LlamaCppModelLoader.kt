@@ -10,19 +10,56 @@ import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
 
-internal val NoOpJni: LlamaJniBridge = object : LlamaJniBridge {
-    override fun loadModel(path: String, useMmap: Boolean, vocabOnly: Boolean): Long = 1L
-    override fun freeModel(nativePtr: Long) = Unit
-    override fun isValidGguf(path: String): Boolean = true
-    override fun createContext(modelPtr: Long, nCtx: Int, nBatch: Int): Long = 1L
-    override fun freeContext(ctxPtr: Long) = Unit
-    override fun clearKvCache(ctxPtr: Long) = Unit
-    override fun tokenize(ctxPtr: Long, text: String, addBos: Boolean): IntArray = intArrayOf(1)
-    override fun tokenToText(ctxPtr: Long, tokenId: Int): String = "[STUB]"
-    override fun isEog(ctxPtr: Long, tokenId: Int): Boolean = tokenId == 2
-    override fun decode(ctxPtr: Long, tokenIds: IntArray): Int = 0
-    override fun sampleNext(ctxPtr: Long, temperature: Float, topP: Float, seed: Int): Int = 1
-}
+internal val NoOpJni: LlamaJniBridge =
+    object : LlamaJniBridge {
+        override fun loadModel(
+            path: String,
+            useMmap: Boolean,
+            vocabOnly: Boolean,
+        ): Long = 1L
+
+        override fun freeModel(nativePtr: Long) = Unit
+
+        override fun isValidGguf(path: String): Boolean = true
+
+        override fun createContext(
+            modelPtr: Long,
+            nCtx: Int,
+            nBatch: Int,
+        ): Long = 1L
+
+        override fun freeContext(ctxPtr: Long) = Unit
+
+        override fun clearKvCache(ctxPtr: Long) = Unit
+
+        override fun tokenize(
+            ctxPtr: Long,
+            text: String,
+            addBos: Boolean,
+        ): IntArray = intArrayOf(1)
+
+        override fun tokenToText(
+            ctxPtr: Long,
+            tokenId: Int,
+        ): String = "[STUB]"
+
+        override fun isEog(
+            ctxPtr: Long,
+            tokenId: Int,
+        ): Boolean = tokenId == 2
+
+        override fun decode(
+            ctxPtr: Long,
+            tokenIds: IntArray,
+        ): Int = 0
+
+        override fun sampleNext(
+            ctxPtr: Long,
+            temperature: Float,
+            topP: Float,
+            seed: Int,
+        ): Int = 1
+    }
 
 class LlamaCppModelLoader internal constructor(
     private val ioDispatcher: CoroutineDispatcher,

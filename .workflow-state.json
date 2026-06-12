@@ -1,12 +1,12 @@
 {
-  "phase": "dev",
+  "phase": "complete",
   "feature": "fr-007-real-device-gguf-integration-test",
   "started_at": "2026-06-11T12:50:35Z",
-  "gatekeeper_passed": false,
+  "gatekeeper_passed": true,
   "artifacts": {
     "requirements": "docs/requirements/FR-007.md",
     "architecture": "docs/architecture/ADR-007.md",
-    "review": ""
+    "review": "docs/reviews/RV-007.md"
   },
   "history": [
     {
@@ -33,6 +33,36 @@
       "event": "advanced_to_dev",
       "phase": "dev",
       "time": "2026-06-12T04:10:00Z"
+    },
+    {
+      "event": "advanced_to_gatekeeper",
+      "phase": "gatekeeper",
+      "time": "2026-06-12T04:20:22Z"
+    },
+    {
+      "event": "gatekeeper_passed",
+      "phase": "gatekeeper",
+      "time": "2026-06-12T04:29:33Z"
+    },
+    {
+      "event": "advanced_to_qa-review",
+      "phase": "qa-review",
+      "time": "2026-06-12T04:29:33Z"
+    },
+    {
+      "event": "artifact_set_review",
+      "phase": "qa-review",
+      "time": "2026-06-12T04:32:39Z"
+    },
+    {
+      "event": "advanced_to_pm-acceptance",
+      "phase": "pm-acceptance",
+      "time": "2026-06-12T04:32:39Z"
+    },
+    {
+      "event": "completed",
+      "phase": "complete",
+      "time": "2026-06-12T04:47:22Z"
     }
   ]
 }

@@ -11,6 +11,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.harnessclaude.llm.ui.InferenceScreen
+import com.harnessclaude.llm.ui.InferenceScreenActions
 import com.harnessclaude.llm.viewmodel.InferenceViewModel
 
 class MainActivity : ComponentActivity() {
@@ -22,12 +23,16 @@ class MainActivity : ComponentActivity() {
                 Surface(modifier = Modifier.fillMaxSize()) {
                     val vm: InferenceViewModel = viewModel(factory = vmFactory)
                     val uiState by vm.uiState.collectAsState()
+                    val screenActions =
+                        InferenceScreenActions(
+                            onGenerate = { prompt -> vm.generate(prompt) },
+                            onStop = vm::stopGeneration,
+                            onClear = vm::clearOutput,
+                            onLoadModel = vm::loadModel,
+                        )
                     InferenceScreen(
                         uiState = uiState,
-                        onGenerate = { prompt -> vm.generate(prompt) },
-                        onStop = vm::stopGeneration,
-                        onClear = vm::clearOutput,
-                        onLoadModel = vm::loadModel,
+                        actions = screenActions,
                     )
                 }
             }

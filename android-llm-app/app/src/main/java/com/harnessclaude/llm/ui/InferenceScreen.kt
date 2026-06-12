@@ -1,5 +1,6 @@
 package com.harnessclaude.llm.ui
 
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -35,10 +36,7 @@ import com.harnessclaude.llm.viewmodel.InferenceUiState
 @Composable
 fun InferenceScreen(
     uiState: InferenceUiState,
-    onGenerate: (String) -> Unit,
-    onStop: () -> Unit,
-    onClear: () -> Unit,
-    onLoadModel: (String) -> Unit = {},
+    actions: InferenceScreenActions,
     modifier: Modifier = Modifier,
 ) {
     var promptText by remember { mutableStateOf("") }
@@ -62,7 +60,7 @@ fun InferenceScreen(
         if (!uiState.modelLoaded && !uiState.isLoading) {
             Spacer(modifier = Modifier.height(8.dp))
             Button(
-                onClick = { onLoadModel("stub") },
+                onClick = { actions.onLoadModel("stub") },
                 modifier = Modifier.fillMaxWidth(),
             ) {
                 Text("Load Model (STUB)")
@@ -80,37 +78,7 @@ fun InferenceScreen(
             )
         }
 
-        Box(
-            modifier =
-                Modifier
-                    .weight(1f)
-                    .fillMaxWidth()
-                    .background(MaterialTheme.colorScheme.surfaceVariant)
-                    .padding(8.dp),
-        ) {
-            if (uiState.output.isEmpty() && !uiState.isGenerating) {
-                Text(
-                    text = "Output will appear here…",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
-                )
-            } else {
-                Text(
-                    text = uiState.output,
-                    style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.verticalScroll(scrollState),
-                )
-            }
-            if (uiState.isGenerating) {
-                CircularProgressIndicator(
-                    modifier =
-                        Modifier
-                            .align(Alignment.BottomEnd)
-                            .padding(4.dp),
-                    strokeWidth = 2.dp,
-                )
-            }
-        }
+        OutputBox(uiState = uiState, scrollState = scrollState, modifier = Modifier.weight(1f))
 
         Spacer(modifier = Modifier.height(8.dp))
 
@@ -127,7 +95,7 @@ fun InferenceScreen(
                 KeyboardActions(
                     onSend = {
                         if (promptText.isNotBlank() && !uiState.isGenerating) {
-                            onGenerate(promptText.trim())
+                            actions.onGenerate(promptText.trim())
                         }
                     },
                 ),
@@ -135,34 +103,85 @@ fun InferenceScreen(
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        Row(modifier = Modifier.fillMaxWidth()) {
-            Button(
-                onClick = {
-                    if (uiState.isGenerating) {
-                        onStop()
-                    } else {
-                        if (promptText.isNotBlank()) {
-                            onGenerate(promptText.trim())
-                        }
-                    }
-                },
-                enabled = uiState.modelLoaded && !uiState.isLoading,
-                modifier = Modifier.weight(1f),
-            ) {
-                if (uiState.isLoading) {
-                    CircularProgressIndicator(strokeWidth = 2.dp)
-                } else {
-                    Text(if (uiState.isGenerating) "Stop" else "Generate")
-                }
-            }
+        ActionRow(
+            uiState = uiState,
+            promptText = promptText,
+            actions = actions,
+        )
+    }
+}
 
-            TextButton(
-                onClick = onClear,
-                enabled = uiState.output.isNotEmpty() || uiState.error != null,
-                modifier = Modifier.padding(start = 8.dp),
-            ) {
-                Text("Clear")
+@Suppress("FunctionNaming", "ktlint:standard:function-naming")
+@Composable
+private fun OutputBox(
+    uiState: InferenceUiState,
+    scrollState: ScrollState,
+    modifier: Modifier = Modifier,
+) {
+    Box(
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .background(MaterialTheme.colorScheme.surfaceVariant)
+                .padding(8.dp),
+    ) {
+        if (uiState.output.isEmpty() && !uiState.isGenerating) {
+            Text(
+                text = "Output will appear here…",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+            )
+        } else {
+            Text(
+                text = uiState.output,
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.verticalScroll(scrollState),
+            )
+        }
+        if (uiState.isGenerating) {
+            CircularProgressIndicator(
+                modifier =
+                    Modifier
+                        .align(Alignment.BottomEnd)
+                        .padding(4.dp),
+                strokeWidth = 2.dp,
+            )
+        }
+    }
+}
+
+@Suppress("FunctionNaming", "ktlint:standard:function-naming")
+@Composable
+private fun ActionRow(
+    uiState: InferenceUiState,
+    promptText: String,
+    actions: InferenceScreenActions,
+) {
+    Row(modifier = Modifier.fillMaxWidth()) {
+        Button(
+            onClick = {
+                if (uiState.isGenerating) {
+                    actions.onStop()
+                } else if (promptText.isNotBlank()) {
+                    actions.onGenerate(promptText.trim())
+                }
+            },
+            enabled = uiState.modelLoaded && !uiState.isLoading,
+            modifier = Modifier.weight(1f),
+        ) {
+            if (uiState.isLoading) {
+                CircularProgressIndicator(strokeWidth = 2.dp)
+            } else {
+                Text(if (uiState.isGenerating) "Stop" else "Generate")
             }
+        }
+
+        TextButton(
+            onClick = actions.onClear,
+            enabled = uiState.output.isNotEmpty() || uiState.error != null,
+            modifier = Modifier.padding(start = 8.dp),
+        ) {
+            Text("Clear")
         }
     }
 }

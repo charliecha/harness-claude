@@ -99,10 +99,14 @@ class LlamaCppLoaderInstrumentedTest {
      * is loaded without weight tensors (which it doesn't have).
      */
     private fun vocabOnlyLoader(): LlamaCppModelLoader {
-        val vocabJni: LlamaJniBridge = object : LlamaJniBridge by LlamaJni {
-            override fun loadModel(path: String, useMmap: Boolean, vocabOnly: Boolean): Long =
-                LlamaJni.loadModel(path, useMmap = useMmap, vocabOnly = true)
-        }
+        val vocabJni: LlamaJniBridge =
+            object : LlamaJniBridge by LlamaJni {
+                override fun loadModel(
+                    path: String,
+                    useMmap: Boolean,
+                    vocabOnly: Boolean,
+                ): Long = LlamaJni.loadModel(path, useMmap = useMmap, vocabOnly = true)
+            }
         return LlamaCppModelLoader(
             ioDispatcher = Dispatchers.IO,
             pathValidator = PathValidator(ctx.filesDir),
