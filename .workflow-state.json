@@ -1,68 +1,68 @@
 {
   "phase": "complete",
-  "feature": "fr-007-real-device-gguf-integration-test",
-  "started_at": "2026-06-11T12:50:35Z",
+  "feature": "fr-008-real-model-loading",
+  "started_at": "2026-06-12T04:49:59Z",
   "gatekeeper_passed": true,
   "artifacts": {
-    "requirements": "docs/requirements/FR-007.md",
-    "architecture": "docs/architecture/ADR-007.md",
-    "review": "docs/reviews/RV-007.md"
+    "requirements": "docs/requirements/FR-008.md",
+    "architecture": "docs/architecture/ADR-008.md",
+    "review": "docs/reviews/RV-008.md"
   },
   "history": [
     {
       "event": "started",
       "phase": "requirements",
-      "time": "2026-06-11T12:50:35Z"
+      "time": "2026-06-12T04:49:59Z"
     },
     {
       "event": "artifact_set_requirements",
       "phase": "requirements",
-      "time": "2026-06-11T12:51:52Z"
+      "time": "2026-06-12T05:02:05Z"
     },
     {
       "event": "advanced_to_architecture",
       "phase": "architecture",
-      "time": "2026-06-11T12:54:43Z"
+      "time": "2026-06-12T05:02:05Z"
     },
     {
       "event": "artifact_set_architecture",
       "phase": "architecture",
-      "time": "2026-06-12T04:08:15Z"
+      "time": "2026-06-12T05:04:31Z"
     },
     {
       "event": "advanced_to_dev",
       "phase": "dev",
-      "time": "2026-06-12T04:10:00Z"
+      "time": "2026-06-12T05:04:31Z"
     },
     {
       "event": "advanced_to_gatekeeper",
       "phase": "gatekeeper",
-      "time": "2026-06-12T04:20:22Z"
+      "time": "2026-06-12T05:10:06Z"
     },
     {
       "event": "gatekeeper_passed",
       "phase": "gatekeeper",
-      "time": "2026-06-12T04:29:33Z"
+      "time": "2026-06-12T05:10:06Z"
     },
     {
       "event": "advanced_to_qa-review",
       "phase": "qa-review",
-      "time": "2026-06-12T04:29:33Z"
+      "time": "2026-06-12T05:10:07Z"
     },
     {
       "event": "artifact_set_review",
       "phase": "qa-review",
-      "time": "2026-06-12T04:32:39Z"
+      "time": "2026-06-12T05:12:30Z"
     },
     {
       "event": "advanced_to_pm-acceptance",
       "phase": "pm-acceptance",
-      "time": "2026-06-12T04:32:39Z"
+      "time": "2026-06-12T05:12:30Z"
     },
     {
       "event": "completed",
       "phase": "complete",
-      "time": "2026-06-12T04:47:22Z"
+      "time": "2026-06-12T06:27:15Z"
     }
   ]
 }

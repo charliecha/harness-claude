@@ -57,13 +57,22 @@ fun InferenceScreen(
             style = MaterialTheme.typography.headlineSmall,
         )
 
-        if (!uiState.modelLoaded && !uiState.isLoading) {
+        if (!uiState.modelLoaded && !uiState.isCopying && !uiState.isLoading) {
             Spacer(modifier = Modifier.height(8.dp))
             Button(
-                onClick = { actions.onLoadModel("stub") },
+                onClick = actions.onLoadModelClick,
                 modifier = Modifier.fillMaxWidth(),
             ) {
-                Text("Load Model (STUB)")
+                Text("Load Model")
+            }
+        }
+
+        if (uiState.isCopying || uiState.isLoading) {
+            Spacer(modifier = Modifier.height(8.dp))
+            val statusText = if (uiState.isCopying) "Copying model…" else "Loading model…"
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                CircularProgressIndicator(strokeWidth = 2.dp, modifier = Modifier.padding(end = 8.dp))
+                Text(text = statusText, style = MaterialTheme.typography.bodySmall)
             }
         }
 
@@ -87,7 +96,7 @@ fun InferenceScreen(
             onValueChange = { promptText = it },
             label = { Text("Prompt") },
             modifier = Modifier.fillMaxWidth(),
-            enabled = uiState.modelLoaded && !uiState.isLoading,
+            enabled = uiState.modelLoaded && !uiState.isLoading && !uiState.isCopying,
             singleLine = false,
             maxLines = 4,
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Send),
@@ -166,14 +175,10 @@ private fun ActionRow(
                     actions.onGenerate(promptText.trim())
                 }
             },
-            enabled = uiState.modelLoaded && !uiState.isLoading,
+            enabled = uiState.modelLoaded && !uiState.isLoading && !uiState.isCopying,
             modifier = Modifier.weight(1f),
         ) {
-            if (uiState.isLoading) {
-                CircularProgressIndicator(strokeWidth = 2.dp)
-            } else {
-                Text(if (uiState.isGenerating) "Stop" else "Generate")
-            }
+            Text(if (uiState.isGenerating) "Stop" else "Generate")
         }
 
         TextButton(

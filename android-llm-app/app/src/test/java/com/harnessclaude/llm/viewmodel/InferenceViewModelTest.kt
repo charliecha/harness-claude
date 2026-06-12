@@ -1,13 +1,18 @@
 package com.harnessclaude.llm.viewmodel
 
+import android.content.Context
+import android.net.Uri
 import com.harnessclaude.llm.inference.InferenceParams
 import com.harnessclaude.llm.inference.InferenceSessionFactory
 import com.harnessclaude.llm.model.ModelHandle
 import com.harnessclaude.llm.model.ModelLoader
 import com.harnessclaude.llm.nativebridge.LlamaJniBridge
+import com.harnessclaude.llm.storage.ModelStorage
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.mockkObject
+import io.mockk.unmockkObject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -151,6 +156,7 @@ class InferenceViewModelTest {
         val state = InferenceUiState()
         assertEquals("", state.output)
         assertFalse(state.isLoading)
+        assertFalse(state.isCopying)
         assertFalse(state.isGenerating)
         assertNull(state.error)
         assertFalse(state.modelLoaded)
@@ -177,5 +183,93 @@ class InferenceViewModelTest {
 
             assertNotNull(vm.uiState.value.error)
             assertFalse(vm.uiState.value.isGenerating)
+        }
+
+    // ── loadModelFromUri tests ────────────────────────────────────────────
+
+    @Test
+    fun `loadModelFromUri success sets modelLoaded and clears isCopying and isLoading`() =
+        runTest {
+            mockkObject(ModelStorage)
+            val ctx = mockk<Context>()
+            val uri = mockk<Uri>()
+            val handle = fakeHandle()
+            val loader = mockk<ModelLoader> { coEvery { load(any()) } returns Result.success(handle) }
+            coEvery { ModelStorage.copyModelFromUri(ctx, uri) } returns Result.success("/files/models/m.gguf")
+
+            val vm = InferenceViewModel(modelLoader = loader, sessionFactory = mockk())
+            vm.loadModelFromUri(ctx, uri)
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            assertTrue(vm.uiState.value.modelLoaded)
+            assertFalse(vm.uiState.value.isCopying)
+            assertFalse(vm.uiState.value.isLoading)
+            assertNull(vm.uiState.value.error)
+            unmockkObject(ModelStorage)
+        }
+
+    @Test
+    fun `loadModelFromUri copy failure sets error and clears isCopying`() =
+        runTest {
+            mockkObject(ModelStorage)
+            val ctx = mockk<Context>()
+            val uri = mockk<Uri>()
+            coEvery { ModelStorage.copyModelFromUri(ctx, uri) } returns
+                Result.failure(RuntimeException("disk full"))
+
+            val vm = InferenceViewModel(modelLoader = mockk(), sessionFactory = mockk())
+            vm.loadModelFromUri(ctx, uri)
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            assertFalse(vm.uiState.value.modelLoaded)
+            assertFalse(vm.uiState.value.isCopying)
+            assertNotNull(vm.uiState.value.error)
+            unmockkObject(ModelStorage)
+        }
+
+    @Test
+    fun `loadModelFromUri load failure sets error and clears isLoading`() =
+        runTest {
+            mockkObject(ModelStorage)
+            val ctx = mockk<Context>()
+            val uri = mockk<Uri>()
+            val loader =
+                mockk<ModelLoader> {
+                    coEvery { load(any()) } returns Result.failure(RuntimeException("null ptr"))
+                }
+            coEvery { ModelStorage.copyModelFromUri(ctx, uri) } returns Result.success("/files/models/m.gguf")
+
+            val vm = InferenceViewModel(modelLoader = loader, sessionFactory = mockk())
+            vm.loadModelFromUri(ctx, uri)
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            assertFalse(vm.uiState.value.modelLoaded)
+            assertFalse(vm.uiState.value.isLoading)
+            assertNotNull(vm.uiState.value.error)
+            unmockkObject(ModelStorage)
+        }
+
+    @Test
+    fun `loadModelFromUri is no-op when model already loaded`() =
+        runTest {
+            mockkObject(ModelStorage)
+            val ctx = mockk<Context>()
+            val uri = mockk<Uri>()
+            val handle = fakeHandle()
+            var copyCount = 0
+            val loader = mockk<ModelLoader> { coEvery { load(any()) } returns Result.success(handle) }
+            coEvery { ModelStorage.copyModelFromUri(ctx, uri) } answers {
+                copyCount++
+                Result.success("/files/models/m.gguf")
+            }
+
+            val vm = InferenceViewModel(modelLoader = loader, sessionFactory = mockk())
+            vm.loadModelFromUri(ctx, uri)
+            testDispatcher.scheduler.advanceUntilIdle()
+            vm.loadModelFromUri(ctx, uri)
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            assertEquals(1, copyCount)
+            unmockkObject(ModelStorage)
         }
 }

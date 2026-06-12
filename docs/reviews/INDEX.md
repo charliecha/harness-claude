@@ -9,6 +9,7 @@
 | [RV-005](RV-005.md) | llama.cpp Submodule 集成 QA  | **Passed** | FR-005              | ADR-005 |
 | [RV-006](RV-006.md) | 端侧 LLM 推理接口 QA         | **Passed** | FR-006              | ADR-006 |
 | [RV-007](RV-007.md) | 真机 GGUF 加载集成测试 QA    | **Passed** | FR-007              | ADR-007 |
+| [RV-008](RV-008.md) | 真实模型加载移除 STUB QA     | **Passed** | FR-008              | ADR-008 |
 
 ## Status Legend
 

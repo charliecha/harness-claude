@@ -8,7 +8,8 @@
 | FR-004 | Android LLM 推理助手 - 项目初始化 + GGUF 模型加载 | Done   | ADR-004  | RV-004      |
 | FR-005 | 集成 llama.cpp Submodule，替换 STUB 模式          | Done   | ADR-005  | RV-005      |
 | FR-006 | LLM 推理接口：Token 生成 / llama_eval / 流式输出  | Done   | ADR-006  | RV-006      |
-| FR-007 | 真机 GGUF 加载集成测试                            | Active | —        | —           |
+| FR-007 | 真机 GGUF 加载集成测试                            | Done   | ADR-007  | RV-007      |
+| FR-008 | 真实模型加载：移除 STUB，接入 SAF 文件选择器      | Active | —        | —           |
 
 ## 状态说明
 

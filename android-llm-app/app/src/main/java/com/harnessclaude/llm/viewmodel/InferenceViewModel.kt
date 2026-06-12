@@ -1,5 +1,7 @@
 package com.harnessclaude.llm.viewmodel
 
+import android.content.Context
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -10,7 +12,9 @@ import com.harnessclaude.llm.inference.InferenceSessionFactory
 import com.harnessclaude.llm.model.LlamaCppModelLoader
 import com.harnessclaude.llm.model.ModelHandle
 import com.harnessclaude.llm.model.ModelLoader
-import com.harnessclaude.llm.model.NoOpJni
+import com.harnessclaude.llm.nativebridge.LlamaJni
+import com.harnessclaude.llm.storage.ModelStorage
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -24,6 +28,7 @@ import java.io.File
 data class InferenceUiState(
     val output: String = "",
     val isLoading: Boolean = false,
+    val isCopying: Boolean = false,
     val isGenerating: Boolean = false,
     val error: String? = null,
     val modelLoaded: Boolean = false,
@@ -52,6 +57,35 @@ class InferenceViewModel(
                 onFailure = { e ->
                     _uiState.update { it.copy(isLoading = false, error = e.message) }
                     Timber.e(e, "loadModel failed")
+                },
+            )
+        }
+    }
+
+    fun loadModelFromUri(
+        context: Context,
+        uri: Uri,
+    ) {
+        if (_uiState.value.isCopying || _uiState.value.isLoading || _uiState.value.modelLoaded) return
+        _uiState.update { it.copy(isCopying = true, error = null) }
+        viewModelScope.launch(Dispatchers.IO) {
+            ModelStorage.copyModelFromUri(context, uri).fold(
+                onSuccess = { path ->
+                    _uiState.update { it.copy(isCopying = false, isLoading = true) }
+                    modelLoader.load(path).fold(
+                        onSuccess = { handle ->
+                            modelHandle = handle
+                            _uiState.update { it.copy(isLoading = false, modelLoaded = true) }
+                        },
+                        onFailure = { e ->
+                            _uiState.update { it.copy(isLoading = false, error = e.message) }
+                            Timber.e(e, "loadModelFromUri load failed")
+                        },
+                    )
+                },
+                onFailure = { e ->
+                    _uiState.update { it.copy(isCopying = false, error = e.message) }
+                    Timber.e(e, "loadModelFromUri copy failed")
                 },
             )
         }
@@ -131,13 +165,13 @@ class InferenceViewModel(
                 LlamaCppModelLoader(
                     ioDispatcher = kotlinx.coroutines.Dispatchers.IO,
                     pathValidator = com.harnessclaude.llm.storage.PathValidator(filesDir),
-                    jni = NoOpJni,
+                    jni = LlamaJni,
                     threadChecker = com.harnessclaude.llm.threading.ThreadChecker.Real,
-                    stubMode = true,
+                    stubMode = false,
                 )
             val sessionFactory =
                 InferenceSessionFactory(
-                    jni = NoOpJni,
+                    jni = LlamaJni,
                     threadChecker = com.harnessclaude.llm.threading.ThreadChecker.Real,
                 )
             return InferenceViewModel(loader, sessionFactory) as T
