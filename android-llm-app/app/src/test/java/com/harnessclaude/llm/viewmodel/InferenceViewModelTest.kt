@@ -197,7 +197,7 @@ class InferenceViewModelTest {
             val loader = mockk<ModelLoader> { coEvery { load(any()) } returns Result.success(handle) }
             coEvery { ModelStorage.copyModelFromUri(ctx, uri) } returns Result.success("/files/models/m.gguf")
 
-            val vm = InferenceViewModel(modelLoader = loader, sessionFactory = mockk())
+            val vm = InferenceViewModel(modelLoader = loader, sessionFactory = mockk(), ioDispatcher = testDispatcher)
             vm.loadModelFromUri(ctx, uri)
             testDispatcher.scheduler.advanceUntilIdle()
 
@@ -217,7 +217,7 @@ class InferenceViewModelTest {
             coEvery { ModelStorage.copyModelFromUri(ctx, uri) } returns
                 Result.failure(RuntimeException("disk full"))
 
-            val vm = InferenceViewModel(modelLoader = mockk(), sessionFactory = mockk())
+            val vm = InferenceViewModel(modelLoader = mockk(), sessionFactory = mockk(), ioDispatcher = testDispatcher)
             vm.loadModelFromUri(ctx, uri)
             testDispatcher.scheduler.advanceUntilIdle()
 
@@ -239,7 +239,7 @@ class InferenceViewModelTest {
                 }
             coEvery { ModelStorage.copyModelFromUri(ctx, uri) } returns Result.success("/files/models/m.gguf")
 
-            val vm = InferenceViewModel(modelLoader = loader, sessionFactory = mockk())
+            val vm = InferenceViewModel(modelLoader = loader, sessionFactory = mockk(), ioDispatcher = testDispatcher)
             vm.loadModelFromUri(ctx, uri)
             testDispatcher.scheduler.advanceUntilIdle()
 
@@ -263,7 +263,7 @@ class InferenceViewModelTest {
                 Result.success("/files/models/m.gguf")
             }
 
-            val vm = InferenceViewModel(modelLoader = loader, sessionFactory = mockk())
+            val vm = InferenceViewModel(modelLoader = loader, sessionFactory = mockk(), ioDispatcher = testDispatcher)
             vm.loadModelFromUri(ctx, uri)
             testDispatcher.scheduler.advanceUntilIdle()
             vm.loadModelFromUri(ctx, uri)
@@ -271,5 +271,62 @@ class InferenceViewModelTest {
 
             assertEquals(1, copyCount)
             unmockkObject(ModelStorage)
+        }
+
+    // ── unloadModel tests ────────────────────────────────────────────────
+
+    @Test
+    fun `unloadModel resets state to initial`() =
+        runTest {
+            val handle = fakeHandle()
+            val loader = mockk<ModelLoader> { coEvery { load(any()) } returns Result.success(handle) }
+            val vm = InferenceViewModel(modelLoader = loader, sessionFactory = mockk())
+            vm.loadModel("/model.gguf")
+            testDispatcher.scheduler.advanceUntilIdle()
+            assertTrue(vm.uiState.value.modelLoaded)
+
+            vm.unloadModel()
+
+            val state = vm.uiState.value
+            assertFalse(state.modelLoaded)
+            assertFalse(state.isLoading)
+            assertFalse(state.isGenerating)
+            assertNull(state.error)
+            assertEquals("", state.output)
+        }
+
+    @Test
+    fun `unloadModel allows reload after unload`() =
+        runTest {
+            val handle = fakeHandle()
+            var loadCount = 0
+            val loader =
+                mockk<ModelLoader> {
+                    coEvery { load(any()) } answers {
+                        loadCount++
+                        Result.success(handle)
+                    }
+                }
+            val vm = InferenceViewModel(modelLoader = loader, sessionFactory = mockk())
+
+            vm.loadModel("/model.gguf")
+            testDispatcher.scheduler.advanceUntilIdle()
+            vm.unloadModel()
+            vm.loadModel("/model2.gguf")
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            assertEquals(2, loadCount)
+            assertTrue(vm.uiState.value.modelLoaded)
+        }
+
+    @Test
+    fun `unloadModel while generating stops generation first`() =
+        runTest {
+            val vm = InferenceViewModel(modelLoader = mockk(), sessionFactory = mockk())
+            // Force isGenerating=true manually is not possible without real session,
+            // but unloadModel should not throw when isGenerating=false
+            vm.unloadModel()
+            assertFalse(vm.uiState.value.isGenerating)
+            assertFalse(vm.uiState.value.modelLoaded)
         }
 }

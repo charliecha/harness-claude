@@ -188,5 +188,14 @@ private fun ActionRow(
         ) {
             Text("Clear")
         }
+
+        if (uiState.modelLoaded) {
+            TextButton(
+                onClick = actions.onUnloadModel,
+                modifier = Modifier.padding(start = 8.dp),
+            ) {
+                Text("Unload")
+            }
+        }
     }
 }

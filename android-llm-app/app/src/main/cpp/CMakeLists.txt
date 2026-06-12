@@ -67,3 +67,6 @@ endif()
 if(CMAKE_BUILD_TYPE STREQUAL "Release")
     target_link_options(llama_jni PRIVATE "-Wl,--gc-sections,--strip-all")
 endif()
+
+# 16 KB page alignment for Android 15+ (Pixel 9+) compatibility
+target_link_options(llama_jni PRIVATE "-Wl,-z,max-page-size=16384")

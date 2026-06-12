@@ -5,4 +5,5 @@ data class InferenceScreenActions(
     val onStop: () -> Unit,
     val onClear: () -> Unit,
     val onLoadModelClick: () -> Unit = {},
+    val onUnloadModel: () -> Unit = {},
 )

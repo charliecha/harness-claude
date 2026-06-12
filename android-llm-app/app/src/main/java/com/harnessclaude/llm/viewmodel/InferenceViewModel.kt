@@ -22,6 +22,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
 
@@ -37,6 +38,7 @@ data class InferenceUiState(
 class InferenceViewModel(
     private val modelLoader: ModelLoader,
     private val sessionFactory: InferenceSessionFactory = InferenceSessionFactory(),
+    private val ioDispatcher: kotlinx.coroutines.CoroutineDispatcher = Dispatchers.IO,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(InferenceUiState())
     val uiState: StateFlow<InferenceUiState> = _uiState.asStateFlow()
@@ -68,11 +70,11 @@ class InferenceViewModel(
     ) {
         if (_uiState.value.isCopying || _uiState.value.isLoading || _uiState.value.modelLoaded) return
         _uiState.update { it.copy(isCopying = true, error = null) }
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch {
             ModelStorage.copyModelFromUri(context, uri).fold(
                 onSuccess = { path ->
                     _uiState.update { it.copy(isCopying = false, isLoading = true) }
-                    modelLoader.load(path).fold(
+                    withContext(ioDispatcher) { modelLoader.load(path) }.fold(
                         onSuccess = { handle ->
                             modelHandle = handle
                             _uiState.update { it.copy(isLoading = false, modelLoaded = true) }
@@ -150,6 +152,15 @@ class InferenceViewModel(
 
     fun clearOutput() {
         _uiState.update { it.copy(output = "", error = null) }
+    }
+
+    fun unloadModel() {
+        if (_uiState.value.isGenerating) stopGeneration()
+        session?.close()
+        session = null
+        modelHandle?.release()
+        modelHandle = null
+        _uiState.update { InferenceUiState() }
     }
 
     override fun onCleared() {
