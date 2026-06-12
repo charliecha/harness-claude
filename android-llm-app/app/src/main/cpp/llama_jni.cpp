@@ -53,7 +53,7 @@ std::string jstring_to_std(JNIEnv* env, jstring s) {
 
 extern "C" JNIEXPORT jlong JNICALL
 Java_com_harnessclaude_llm_nativebridge_LlamaJni_loadModel(
-        JNIEnv* env, jobject /*this*/, jstring jpath, jboolean useMmap) {
+        JNIEnv* env, jobject /*this*/, jstring jpath, jboolean useMmap, jboolean vocabOnly) {
     const std::string path = jstring_to_std(env, jpath);
     if (path.empty()) {
         LOGE("loadModel: empty path");
@@ -67,20 +67,21 @@ Java_com_harnessclaude_llm_nativebridge_LlamaJni_loadModel(
 #if defined(LLAMA_CPP_AVAILABLE) && LLAMA_CPP_AVAILABLE
     llama_backend_init();
     llama_model_params params = llama_model_default_params();
-    params.use_mmap = useMmap;
-    params.use_mlock = false;
+    params.use_mmap   = useMmap;
+    params.use_mlock  = false;
+    params.vocab_only = vocabOnly;
     llama_model* model = llama_model_load_from_file(path.c_str(), params);
     if (!model) {
         LOGE("llama_load_model_from_file returned NULL for %s", path.c_str());
         return 0L;
     }
-    LOGI("Loaded model: %s (mmap=%d)", path.c_str(), useMmap);
+    LOGI("Loaded model: %s (mmap=%d vocab_only=%d)", path.c_str(), useMmap, vocabOnly);
     return reinterpret_cast<jlong>(model);
 #else
     // STUB mode: pretend to load. Returns a non-zero sentinel that
     // freeModel will safely accept. Used only when llama.cpp submodule
     // is not pulled (CI / first-time clone).
-    LOGI("loadModel STUB: %s (mmap=%d)", path.c_str(), useMmap);
+    LOGI("loadModel STUB: %s (mmap=%d vocab_only=%d)", path.c_str(), useMmap, vocabOnly);
     return reinterpret_cast<jlong>(new int(0xC0FFEE));
 #endif
 }

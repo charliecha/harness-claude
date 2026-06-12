@@ -6,6 +6,7 @@ internal interface LlamaJniBridge {
     fun loadModel(
         path: String,
         useMmap: Boolean,
+        vocabOnly: Boolean = false,
     ): Long
 
     fun freeModel(nativePtr: Long)

@@ -17,6 +17,7 @@ internal object LlamaJni : LlamaJniBridge {
     external override fun loadModel(
         path: String,
         useMmap: Boolean,
+        vocabOnly: Boolean,
     ): Long
 
     external override fun freeModel(nativePtr: Long)

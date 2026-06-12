@@ -40,7 +40,7 @@ class LlamaCppModelLoaderTest {
             val jni =
                 mockk<LlamaJniBridge>(relaxed = true) {
                     every { isValidGguf(file.absolutePath) } returns true
-                    every { loadModel(file.absolutePath, useMmap = true) } returns 12345L
+                    every { loadModel(file.absolutePath, useMmap = true, vocabOnly = false) } returns 12345L
                 }
             val loader =
                 LlamaCppModelLoader(
@@ -54,7 +54,7 @@ class LlamaCppModelLoaderTest {
 
             assertTrue(result.isSuccess)
             assertEquals(12345L, result.getOrNull()!!.nativePointer())
-            verify { jni.loadModel(file.absolutePath, useMmap = true) }
+            verify { jni.loadModel(file.absolutePath, useMmap = true, vocabOnly = false) }
         }
 
     @Test
@@ -153,7 +153,7 @@ class LlamaCppModelLoaderTest {
             val jni =
                 mockk<LlamaJniBridge>(relaxed = true) {
                     every { isValidGguf(file.absolutePath) } returns true
-                    every { loadModel(file.absolutePath, useMmap = true) } returns 0L
+                    every { loadModel(file.absolutePath, useMmap = true, vocabOnly = false) } returns 0L
                 }
             val loader =
                 LlamaCppModelLoader(

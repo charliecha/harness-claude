@@ -11,7 +11,7 @@ import timber.log.Timber
 import java.io.File
 
 internal val NoOpJni: LlamaJniBridge = object : LlamaJniBridge {
-    override fun loadModel(path: String, useMmap: Boolean): Long = 1L
+    override fun loadModel(path: String, useMmap: Boolean, vocabOnly: Boolean): Long = 1L
     override fun freeModel(nativePtr: Long) = Unit
     override fun isValidGguf(path: String): Boolean = true
     override fun createContext(modelPtr: Long, nCtx: Int, nBatch: Int): Long = 1L
@@ -61,7 +61,7 @@ class LlamaCppModelLoader internal constructor(
                 }
 
                 val started = System.nanoTime()
-                val ptr = jni.loadModel(path, useMmap = true)
+                val ptr = jni.loadModel(path, useMmap = true, vocabOnly = false)
                 if (ptr == 0L) {
                     throw ModelLoadError.NativeFailure(
                         "llama_load_model_from_file returned NULL",
